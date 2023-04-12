@@ -16,7 +16,7 @@ while True:
             password = 'igdptgutxfgzjjlz'
             from_addr = 'testirovaniye321@gmail.com'
             to_addrs = 'testirovaniye321@gmail.com'
-            subject = '123'
+            subject = 'For Olechka'
             text = '123'
             private_key = './id_rsa'
 
@@ -31,7 +31,7 @@ while True:
             username = 'testirovaniye321@gmail.com'
             password = 'igdptgutxfgzjjlz'
 
-            mail_client.receive_mail(username, password)
+            mail_client.receive_mail(username, password, 'inbox')
         case 3:
             break
         case _:

@@ -1,45 +1,57 @@
+from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
-from Crypto.Signature import pkcs1_15
 
 
-def sign_text(private_key, text):
-    # Получаем хэш файла
-    h = SHA256.new(text.encode('UTF-8'))
-
-    # Подписываем хэш
-    signature = pkcs1_15.new(private_key).sign(h)
-
-    print(private_key.public_key().export_key())
+def sign_text(str_public_key, text):
+    signature = get_sign(str_public_key, text)
 
     return signature
 
 
-def check_signature(signature, pub_key, text):
-    if pub_key is None:
+def check_signature(str_signature, str_pub_key, text):
+    if str_pub_key is None:
         return False
 
-    # pub_key = pub_key.replace("-----BEGIN PUBLIC KEY-----\n", '')
-    # pub_key = pub_key.replace("\n-----END PUBLIC KEY-----", '')
+    signature = get_sign(str_pub_key, text)
 
-    print(pub_key)
+    print(str_signature)
+    print(signature)
 
-    pubkey = RSA.import_key(bytes(pub_key))
-
-    try:
-        pkcs1_15.new(pubkey).verify(SHA256.new(text.encode('UTF-8')), signature)
-        return True
-    except ValueError:
-        return False
+    return signature == str_signature
 
 
-with open('./id_rsa', "rb") as f:
-    key = RSA.import_key(f.read())
+def get_sign(str_pub_key, text):
+    print(text)
+    print(str_pub_key)
+    h = SHA256.new(text.encode('UTF-8')).hexdigest()
+    print(h)
+    public_key = RSA.import_key(str_pub_key.replace("b'", "").replace("'", "").replace("\\n", "\n"))
+    rsa_public_key = PKCS1_OAEP.new(public_key)
+    print(h.encode())
+    return rsa_public_key.encrypt(h.encode())
 
-sign = sign_text(key, '123')
-
-pub_key = str(key.public_key().export_key())
-
-print(pub_key)
-
-print(check_signature(sign, pub_key, '123'))
+# with open('./id_rsa', "rb") as f:
+#     key = RSA.import_key(f.read())
+#
+# pub_key = str(key.public_key().export_key()).replace("b'", "").replace("'", "").replace("\\n", "\n")
+#
+# sign = sign_text(pub_key, '123')
+#
+# print(check_signature(sign, pub_key, '123'))
+#
+# public_key = serialization.load_pem_public_key(
+#     pub_key.encode(),
+#     backend=default_backend()
+# )
+#
+# encrypted = public_key.encrypt(
+#     'message'.encode(),
+#     padding.OAEP(
+#         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+#         algorithm=hashes.SHA256(),
+#         label=None
+#     )
+# )
+#
+# print(encrypted)
