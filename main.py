@@ -16,7 +16,7 @@ while True:
             password = 'igdptgutxfgzjjlz'
             from_addr = 'testirovaniye321@gmail.com'
             to_addrs = 'testirovaniye321@gmail.com'
-            subject = 'For Olechka'
+            subject = '321'
             text = '123'
             private_key = './id_rsa'
 

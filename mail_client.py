@@ -1,9 +1,12 @@
+import binascii
 import email
 import imaplib
 import smtplib
 from email.mime.text import MIMEText
 
-from Crypto.PublicKey import RSA
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_ssh_private_key, load_ssh_public_key
 
 import crypto_sign
 
@@ -13,19 +16,18 @@ smtp_port = 465
 
 def send_email(from_addr, to_addr, username, password, subject, text, key_path):
     with open(key_path, "rb") as f:
-        key = RSA.import_key(f.read())
-        print(f.read())
+        key = load_ssh_private_key(f.read(), password=None, backend=default_backend())
 
-    # key = RSA.generate(4096)
-
-    pub_key = key.public_key().export_key()
+    pub_key = key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo)
 
     message = MIMEText(text)
     message['subject'] = subject
     message['from'] = from_addr
     message['to'] = to_addr
     message.add_header("pub_key", str(pub_key))
-    message.add_header('sign', str(crypto_sign.sign_text(str(pub_key), text)))
+    message.add_header('sign', crypto_sign.sign_text(key, text))
 
     server = smtplib.SMTP_SSL(smtp_host, smtp_port)
     server.login(username, password)
@@ -68,4 +70,4 @@ def receive_mail(username, password, folder):
                 print(f'Content: {mail_content}')
                 print(f'Sign: {sign}')
                 print(f'pub_key: {pub_key}')
-                print(f'Verified: {crypto_sign.check_signature(sign, pub_key, mail_content)}')
+                print(f'Verified: {crypto_sign.check_sign(pub_key, mail_content, sign.encode("latin1"))}')
